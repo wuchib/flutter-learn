@@ -27,19 +27,35 @@ class MyApp extends StatelessWidget {
 
 class MyAppState extends ChangeNotifier {
   var current = WordPair.random();
+  var history = <WordPair>[]; // 历史记录
+
+  // 用于在 HistoryListView 中显示历史记录
+  GlobalKey? historyListKey;
+
   void getNext() {
+    history.insert(0, current);
+    var animatedList = historyListKey?.currentState as AnimatedListState?;
+    animatedList?.insertItem(0);
     current = WordPair.random();
     notifyListeners();
   }
 
   var favorites = <WordPair>[];
 
-  void toggleFavorite() {
-    if (favorites.contains(current)) {
-      favorites.remove(current);
+  // 切换是否收藏该单词
+  void toggleFavorite([WordPair? pair]) {
+    pair = pair ?? current;
+    if (favorites.contains(pair)) {
+      favorites.remove(pair);
     } else {
-      favorites.add(current);
+      favorites.add(pair);
     }
+    notifyListeners();
+  }
+
+  // 删除单词
+  void removeFavorite(WordPair pair) {
+    favorites.remove(pair);
     notifyListeners();
   }
 }
@@ -123,6 +139,11 @@ class GeneratorPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          Expanded(
+            flex: 3,
+            child: HistoryListView(),
+          ),
+          SizedBox(height: 10),
           BigCard(pair: pair),
           SizedBox(height: 10),
           Row(
@@ -144,9 +165,65 @@ class GeneratorPage extends StatelessWidget {
               ),
             ],
           ),
+          Spacer(flex: 2),
         ],
       ),
     );
+  }
+}
+
+class HistoryListView extends StatefulWidget {
+  @override
+  State<HistoryListView> createState() => _HistoryListViewState();
+}
+
+// 历史记录单词的组件
+class _HistoryListViewState extends State<HistoryListView> {
+  final _key = GlobalKey();
+  // 线性过渡
+  static const _maskingGradient = LinearGradient(
+    colors: [
+      Colors.transparent,
+      Colors.black,
+    ],
+    stops: [0.0, 0.5],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final appState = context.watch<MyAppState>();
+    appState.historyListKey = _key;
+
+    return ShaderMask(
+        shaderCallback: (bounds) => _maskingGradient.createShader(bounds),
+        blendMode: BlendMode.dstIn,
+        child: AnimatedList(
+          key: _key,
+          reverse: true,
+          padding: EdgeInsets.only(top: 100),
+          initialItemCount: appState.history.length,
+          itemBuilder: (context, index, animation) {
+            final pair = appState.history[index];
+            return SizeTransition(
+              sizeFactor: animation,
+              child: Center(
+                child: TextButton.icon(
+                    onPressed: () {
+                      appState.toggleFavorite(pair);
+                    },
+                    icon: appState.favorites.contains(pair)
+                        ? Icon(Icons.favorite, size: 12)
+                        : SizedBox(),
+                    label: Text(
+                      pair.asLowerCase,
+                      semanticsLabel: pair.asPascalCase,
+                    )),
+              ),
+            );
+          },
+        ));
   }
 }
 
@@ -170,39 +247,85 @@ class BigCard extends StatelessWidget {
       color: theme.colorScheme.primary,
       child: Padding(
         padding: const EdgeInsets.all(20),
-        child: Text(pair.asLowerCase,
-            style: style, semanticsLabel: "${pair.first} ${pair.second}"),
+        // 调整单词盒子的样式和过渡
+        // child: Text(pair.asLowerCase,
+        //     style: style, semanticsLabel: "${pair.first} ${pair.second}"),
+        child: AnimatedSize(
+            duration: Duration(milliseconds: 200),
+            child: MergeSemantics(
+              child: Wrap(
+                children: [
+                  Text(
+                    pair.first,
+                    style: style.copyWith(fontWeight: FontWeight.w200),
+                  ),
+                  Text(
+                    pair.second,
+                    style: style.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            )),
       ),
     );
   }
 }
 
-// ...
-
+// 收藏页面
 class FavoritesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
-
+    var theme = Theme.of(context);
     if (appState.favorites.isEmpty) {
       return Center(
         child: Text('No favorites yet.'),
       );
     }
-
-    return ListView(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(30),
           child: Text('You have '
               '${appState.favorites.length} favorites:'),
         ),
-        for (var pair in appState.favorites)
-          ListTile(
-            leading: Icon(Icons.favorite),
-            title: Text(pair.asLowerCase),
+        Expanded(
+          // grid 布局
+          child: GridView(
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 400, childAspectRatio: 400 / 80),
+            children: [
+              for (var pair in appState.favorites)
+                ListTile(
+                  leading: IconButton(
+                    icon: Icon(Icons.delete_outline, semanticLabel: 'Delete'),
+                    color: theme.colorScheme.primary,
+                    onPressed: () {
+                      appState.removeFavorite(pair);
+                    },
+                  ),
+                  title:
+                      Text(pair.asLowerCase, semanticsLabel: pair.asPascalCase),
+                ),
+            ],
           ),
+        ),
       ],
     );
+    // return ListView(
+    //   children: [
+    //     Padding(
+    //       padding: const EdgeInsets.all(20),
+    //       child: Text('You have '
+    //           '${appState.favorites.length} favorites:'),
+    //     ),
+    //     for (var pair in appState.favorites)
+    //       ListTile(
+    //         leading: Icon(Icons.favorite),
+    //         title: Text(pair.asLowerCase),
+    //       ),
+    //   ],
+    // );
   }
 }
