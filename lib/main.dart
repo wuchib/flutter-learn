@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => MyAppState(),
       child: MaterialApp(
-        title: 'Namer App',
+        title: '我的第一个flutter应用',
         theme: ThemeData(
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlueAccent),
@@ -80,6 +80,21 @@ class _MyHomePageState extends State<MyHomePage> {
       case 1:
         page = FavoritesPage();
         break;
+      case 2:
+        page = LearnWidget();
+        break;
+      case 3:
+        page = LearnLayout();
+        break;
+      case 4:
+        page = LearnListView();
+        break;
+      case 5:
+        page = LearnStack();
+        break;
+      case 6:
+        page = LearnMediaQuery();
+        break;
       default:
         throw UnimplementedError('no widget for $selectedIndex');
     }
@@ -100,6 +115,26 @@ class _MyHomePageState extends State<MyHomePage> {
                     icon: Icon(Icons.favorite),
                     label: Text('Favorites'),
                   ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.book),
+                    label: Text('LearnWidget'),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.room),
+                    label: Text('layout'),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.list),
+                    label: Text('ListView'),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.stacked_bar_chart),
+                    label: Text('Stack'),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.devices_outlined),
+                    label: Text('MediaQuery'),
+                  ),
                 ],
                 selectedIndex: selectedIndex,
                 onDestinationSelected: (value) {
@@ -119,6 +154,251 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       );
     });
+  }
+}
+
+// 获取当前屏幕信息
+class LearnMediaQuery extends StatelessWidget {
+  const LearnMediaQuery({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('屏幕宽度:'),
+            const SizedBox(width: 10),
+            Text(
+              MediaQuery.of(context).size.width.toString(),
+              style: TextStyle(fontSize: 20, color: Colors.green),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('屏幕高度:'),
+            const SizedBox(width: 10),
+            Text(
+              MediaQuery.of(context).size.height.toString(),
+              style: TextStyle(fontSize: 20, color: Colors.green),
+            ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('屏幕方向:'),
+            const SizedBox(width: 10),
+            Text(
+              MediaQuery.of(context).orientation == Orientation.portrait
+                  ? '竖屏'
+                  : '横屏',
+              style: TextStyle(fontSize: 20, color: Colors.green),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+// 元素定位相关布局
+class LearnStack extends StatelessWidget {
+  const LearnStack({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Container(
+          width: 200,
+          height: 200,
+          color: Colors.red,
+        ),
+        Positioned(
+          top: 20,
+          left: 20,
+          child: Container(
+            width: 100,
+            height: 100,
+            color: Colors.green,
+          ),
+        ),
+        Positioned(
+          top: 20,
+          left: 20,
+          child: Container(
+            width: 50,
+            height: 50,
+            color: Colors.blue,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// 长列表
+class LearnListView extends StatelessWidget {
+  const LearnListView({
+    super.key,
+  });
+
+  final List<ToDo> items = const [
+    ToDo('学习Flutter', true),
+    ToDo('学习Dart', false),
+    ToDo('学习Provider', true),
+    ToDo('学习State Management', false),
+    ToDo('学习ListView', true),
+    ToDo('学习Layout', false),
+    ToDo('学习Layout', false),
+    ToDo('学习Layout', false),
+    ToDo('学习Layout', false),
+    ToDo('学习Layout', false),
+    ToDo('学习Layout', false),
+    ToDo('学习Layout', false),
+    ToDo('学习Layout', false),
+    ToDo('学习Layout', false),
+    ToDo('学习Layout', false),
+    ToDo('学习Layout', false),
+    ToDo('学习Layout', false),
+    ToDo('学习Layout', false),
+    ToDo('学习Layout', false),
+    ToDo('学习Layout', false),
+  ];
+  @override
+  Widget build(BuildContext context) {
+    // ListView当列表项数量未知或非常多（或无限）时，通常会使用
+    // return ListView(
+    //   children: const [
+    //     TestColumn(),
+    //     TestColumn(),
+    //     TestColumn(),
+    //     TestColumn(),
+    //     TestColumn(),
+    //     TestColumn()
+    //   ],
+    // );
+    // 最好使用ListView.builder构造函数。构建器构造函数只会构建当前屏幕上可见的子项。
+    return ListView.builder(
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        var item = items[index];
+        return Container(
+          color: index % 2 == 0 ? Colors.green[100] : Colors.red[100],
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(item.title),
+              Text(item.completed ? '✅' : '❌'),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class ToDo {
+  final String title;
+  final bool completed;
+
+  const ToDo(
+    this.title,
+    this.completed,
+  );
+}
+
+// 行 列 相关布局
+class LearnLayout extends StatelessWidget {
+  const LearnLayout({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        // 可以使用 Expanded 包裹。修复行过宽导致渲染框无法容纳的问题
+        Expanded(
+          child: TestColumn(),
+        ),
+        Expanded(
+          // 弹性系数设置为 2
+          flex: 2,
+          child: TestColumn(),
+        ),
+        Expanded(
+          child: TestColumn(),
+        ),
+      ],
+    );
+  }
+}
+
+class TestColumn extends StatelessWidget {
+  const TestColumn({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 100,
+          height: 100,
+          color: Colors.red,
+        ),
+        Text('')
+      ],
+    );
+  }
+}
+
+// 初识widget
+class LearnWidget extends StatelessWidget {
+  const LearnWidget({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Center(child: const Text('My Home Page')),
+      ),
+      body: Center(
+        child: Builder(
+          builder: (context) {
+            return Column(
+              children: [
+                const Text('Hello, World!'),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    print('Click!');
+                  },
+                  child: const Text('A button'),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
   }
 }
 
